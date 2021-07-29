@@ -9,22 +9,39 @@ enum PLAYER {
     Player2,
 }
 
-// #[derive(PartialEq)]
-// enum PIECE {
-//     PLAYER,
-//     Empty,
-// }
+#[derive(PartialEq)]
+enum PIECE {
+    Player1,
+    Player2,
+    Empty,
+}
 
 struct TicTacToe {
-    state: Vec<Option<PLAYER>>,
+    state: Vec<PIECE>,
     current_player: PLAYER,
+    score_player1: u32,
+    score_player2: u32,
+    score_draws: u32,
 }
 
 impl TicTacToe {
     fn build() -> TicTacToe {
         let new = TicTacToe {
-            state: vec![None, None, None, None, None, None, None, None, None],
+            state: vec![
+                PIECE::Empty,
+                PIECE::Empty,
+                PIECE::Empty,
+                PIECE::Empty,
+                PIECE::Empty,
+                PIECE::Empty,
+                PIECE::Empty,
+                PIECE::Empty,
+                PIECE::Empty,
+            ],
             current_player: PLAYER::Player1,
+            score_player1: 0,
+            score_player2: 0,
+            score_draws: 0,
         };
         new
     }
@@ -37,28 +54,31 @@ impl TicTacToe {
         }
     }
 
-    fn isPossibleMove(&self, num: usize) -> bool {
-        if num > 9 && num < 0 {
+    fn is_possible_move(&self, num: usize) -> bool {
+        if num > 9 {
             return false;
         }
 
         match self.state.get(num) {
             Some(piece) => match piece {
-                Some(piece) => return false,
-                None => return true,
+                PIECE::Empty => return true,
+                _ => return false,
             },
-            None => return false,
+            None => return true,
         }
     }
 
-    fn changePieceInState(&mut self, num: usize) {
+    fn change_piece_in_state(&mut self, num: usize) {
         let player = self.get_player();
-        self.state[num] = Some(player);
+        self.state[num] = match player {
+            PLAYER::Player1 => PIECE::Player1,
+            PLAYER::Player2 => PIECE::Player2,
+        }
     }
 
     fn has_won(&self) -> bool {
         for i in 0..3 {
-            if self.state[i] != None
+            if self.state[i] != PIECE::Empty
                 && self.state[i] == self.state[i + 3]
                 && self.state[i] == self.state[i + 6]
             {
@@ -67,7 +87,7 @@ impl TicTacToe {
 
             let i = i * 3;
 
-            if self.state[i] != None
+            if self.state[i] != PIECE::Empty
                 && self.state[i] == self.state[i + 1]
                 && self.state[i] == self.state[i + 2]
             {
@@ -75,10 +95,10 @@ impl TicTacToe {
             }
         }
 
-        if (self.state[0] != None
+        if (self.state[0] != PIECE::Empty
             && self.state[0] == self.state[4]
             && self.state[0] == self.state[8])
-            || (self.state[2] != None
+            || (self.state[2] != PIECE::Empty
                 && self.state[2] == self.state[4]
                 && self.state[2] == self.state[6])
         {
@@ -91,8 +111,8 @@ impl TicTacToe {
     fn is_over(&self) -> bool {
         for elem in self.state.iter() {
             match elem {
-                Some(_) => (),
-                None => return false,
+                PIECE::Empty => return false,
+                _ => (),
             }
         }
         true
@@ -106,34 +126,6 @@ impl TicTacToe {
         }
     }
 
-    // TODO ta feio e confuso, tou perdida
-    fn get_player_piece(&self, num: usize) -> PLAYER {
-        if num > 9 && num < 0 {
-            return PLAYER::Player1;
-        }
-
-        let mut player: PLAYER;
-
-        match self.state.get(num) {
-            // tou confusa
-            Some(player2) => {
-                player = match player2 {
-                    Some(wtf) => {
-                        if *wtf == PLAYER::Player1 {
-                            PLAYER::Player1
-                        } else {
-                            PLAYER::Player2
-                        }
-                    }
-                    None => PLAYER::Player1,
-                }
-            }
-
-            None => player = PLAYER::Player1,
-        }
-        player
-    }
-
     fn show_player(&self) {
         let mut stdout = StandardStream::stdout(ColorChoice::Always);
 
@@ -144,8 +136,7 @@ impl TicTacToe {
             write!(&mut stdout, "Player 1").unwrap();
         } else {
             stdout
-                // .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
-                .set_color(ColorSpec::new().set_fg(Some(Color::Rgb(255, 28, 96))))
+                .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
                 .unwrap();
             write!(&mut stdout, "Player 2").unwrap();
         }
@@ -154,42 +145,33 @@ impl TicTacToe {
     }
 
     fn show_piece(&self, num: usize) {
-        if num > 9 && num < 0 {
+        if num > 9 {
             return;
         }
-
+        let mut stdout = StandardStream::stdout(ColorChoice::Always);
         match self.state.get(num) {
             Some(piece) => match piece {
-                Some(player) => {
-                    let mut stdout = StandardStream::stdout(ColorChoice::Always);
-                    // let player = self.get_player_piece(num);
-                    if *player == PLAYER::Player1 {
-                        stdout
-                            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
-                            .unwrap();
-                        write!(&mut stdout, "Player 1").unwrap();
-                    } else {
-                        stdout
-                            // .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
-                            .set_color(ColorSpec::new().set_fg(Some(Color::Rgb(255, 28, 96))))
-                            .unwrap();
-                        write!(&mut stdout, "Player 2").unwrap();
-                    }
+                PIECE::Player1 => {
+                    stdout
+                        .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+                        .unwrap();
+                    write!(&mut stdout, "Player 1").unwrap();
+                }
+                PIECE::Player2 => {
+                    stdout
+                        .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
+                        .unwrap();
+                    write!(&mut stdout, "Player 2").unwrap();
+                }
 
-                    stdout.reset().unwrap();
-                }
-                None => {
-                    print!("        ");
-                    return;
-                }
+                PIECE::Empty => print!("        "),
             },
             None => print!("        "),
         }
+        stdout.reset().unwrap();
     }
 
     fn user_move(&mut self) {
-        let player = self.get_player();
-
         loop {
             self.show_player();
             println!(" enter a number:");
@@ -203,12 +185,12 @@ impl TicTacToe {
             if let Ok(number) = input.trim().parse::<usize>() {
                 let number = number - 1;
 
-                if !self.isPossibleMove(number) {
+                if !self.is_possible_move(number) {
                     println!("The field number must be between 1 and 9.");
                     println!("Or this field is already taken.\n");
                     continue;
                 }
-                self.changePieceInState(number);
+                self.change_piece_in_state(number);
 
                 break;
             } else {
@@ -230,11 +212,76 @@ impl TicTacToe {
         }
         println!("\n");
     }
+
+    fn show_score(&self) {
+        let mut stdout = StandardStream::stdout(ColorChoice::Always);
+        stdout
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)))
+            .unwrap();
+        write!(&mut stdout, "SCORE:\n\n").unwrap();
+
+        stdout
+            .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
+            .unwrap();
+        write!(&mut stdout, "Player 1: {}\n", self.score_player1).unwrap();
+
+        stdout
+            .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
+            .unwrap();
+        write!(&mut stdout, "Player 2: {}\n", self.score_player2).unwrap();
+
+        stdout
+            .set_color(ColorSpec::new().set_fg(Some(Color::Red)))
+            .unwrap();
+        write!(&mut stdout, "Draws: {}\n\n", self.score_draws).unwrap();
+        stdout.reset().unwrap();
+    }
+
+    fn change_score_win(&mut self) {
+        let player = self.get_player();
+        match player {
+            PLAYER::Player1 => self.score_player1 += 1,
+            PLAYER::Player2 => self.score_player2 += 1,
+        }
+    }
+
+    fn run_game(&mut self) {
+        for i in 0..9 {
+            self.state[i] = PIECE::Empty;
+        }
+
+        loop {
+            // Draw the field
+            self.show_field();
+
+            // Ask user
+            self.user_move();
+
+            // Check if player won
+            if self.has_won() {
+                self.show_field();
+                self.show_player();
+                println!(" won!!!!!!");
+                self.change_score_win();
+                self.change_player();
+                break;
+            }
+
+            // Check if all fields are used
+            if self.is_over() {
+                self.show_field();
+                println!("No one won.\nAll fields are used.");
+                self.score_draws += 1;
+                self.change_player();
+                break;
+            }
+            self.change_player();
+        }
+    }
 }
 
 fn starting() {
     let mut stdout = StandardStream::stdout(ColorChoice::Always);
-
     print!("           ");
     stdout
         .set_color(ColorSpec::new().set_fg(Some(Color::Cyan)))
@@ -268,33 +315,53 @@ fn starting() {
     println!("Let's go start the game");
 }
 
+fn print_menu() {
+    println!("\nMENU: ");
+    println!("1-> Start Game");
+    println!("2-> Show score");
+    println!("3-> Exit\n");
+}
+
+fn read_input() -> usize {
+    let mut number;
+    loop {
+        print_menu();
+        println!("Enter a number:");
+
+        let mut input = String::new();
+        if std::io::stdin().read_line(&mut input).is_err() {
+            println!("Couldn't read line! Try again.\n");
+            continue;
+        }
+
+        if let Ok(value) = input.trim().parse::<usize>() {
+            number = value;
+            if number > 3 {
+                println!("The field number must be between 1 and 3.");
+                continue;
+            }
+            break;
+        } else {
+            println!("Only numbers are allowed.");
+            continue;
+        }
+    }
+    number
+}
+
+fn run_menu(game: &mut TicTacToe) {
+    loop {
+        match read_input() {
+            1 => game.run_game(),
+            2 => game.show_score(),
+            3 => break,
+            _ => (),
+        }
+    }
+}
+
 fn main() {
     let mut game = TicTacToe::build();
-
     starting();
-
-    loop {
-        // Draw the field
-        game.show_field();
-
-        // Ask user
-        game.user_move();
-
-        // Check if player won
-        if game.has_won() {
-            game.show_field();
-            game.show_player();
-            println!(" won!!!!!!");
-            break;
-        }
-
-        // Check if all fields are used
-        if game.is_over() {
-            game.show_field();
-            println!("No one won.\nAll fields are used.");
-            break;
-        }
-
-        game.change_player();
-    }
+    run_menu(&mut game);
 }
