@@ -144,7 +144,8 @@ impl TicTacToe {
             write!(&mut stdout, "Player 1").unwrap();
         } else {
             stdout
-                .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
+                // .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
+                .set_color(ColorSpec::new().set_fg(Some(Color::Rgb(255, 28, 96))))
                 .unwrap();
             write!(&mut stdout, "Player 2").unwrap();
         }
@@ -169,7 +170,8 @@ impl TicTacToe {
                         write!(&mut stdout, "Player 1").unwrap();
                     } else {
                         stdout
-                            .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
+                            // .set_color(ColorSpec::new().set_fg(Some(Color::Magenta)))
+                            .set_color(ColorSpec::new().set_fg(Some(Color::Rgb(255, 28, 96))))
                             .unwrap();
                         write!(&mut stdout, "Player 2").unwrap();
                     }
